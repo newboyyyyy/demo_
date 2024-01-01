@@ -1,0 +1,157 @@
+CREATE SCHEMA esbedu;
+CREATE TABLE esbedu.bk_user (
+                                id SERIAL PRIMARY KEY,
+                                username VARCHAR(255) UNIQUE NOT NULL,
+                                password VARCHAR(255) NOT NULL,
+                                name VARCHAR(255) NOT NULL,
+                                email VARCHAR(255),
+                                gender VARCHAR(255),
+                                telphone VARCHAR(255)
+);
+
+ALTER SEQUENCE esbedu.bk_user_id_seq RESTART WITH 1000;
+
+INSERT INTO esbedu.bk_user (username, password, name, email, gender,telphone)
+VALUES
+    ('user1', 'password1', '陳大天', 'email1@example.com', '男','0988123456'),
+    ('user2', 'password2', '張小燕', 'email2@example.com', '女','0945678911'),
+    ('user3', 'password3', '科蚊子', 'email3@example.com', '男','0932323232'),
+    ('user4', 'password4', '賴皮療', 'email4@example.com', '女','0911111111'),
+    ('user5', 'password5', '警察王', 'email5@example.com', '男','0988565655');
+
+INSERT INTO esbedu.bk_user (username, password, name, email, gender,telphone)
+VALUES
+('user6', 'password6', '某某某', 'email6@example.com', '女', '0988000000'),
+('user7', 'password7', '某某某', 'email7@example.com', '男', '0988111111'),
+('user8', 'password8', '某某某', 'email8@example.com', '女', '0988222222'),
+('user9', 'password9', '某某某', 'email9@example.com', '男', '0988333333'),
+('user10', 'password10', '某某某', 'email10@example.com', '女', '0988444444');
+
+
+CREATE OR REPLACE procedure esbedu.sp_get_users(OUT o_cur refcursor)
+language plpgsql
+security definer
+as $procedure$
+    BEGIN
+        OPEN o_cur FOR
+        SELECT id, username, password , name,email,gender,telphone FROM esbedu.bk_user
+        ORDER BY id ASC;
+    END;
+$procedure$;
+
+
+
+CREATE OR REPLACE PROCEDURE "esbedu"."sp_find_by_search"(
+    IN i_param character varying,
+    OUT o_cur refcursor
+)
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+AS $procedure$
+BEGIN
+    OPEN o_cur FOR
+        SELECT id, username, password, name, email, gender, telphone
+        FROM esbedu.bk_user
+        WHERE
+                username ILIKE '%' || i_param || '%' OR
+                name ILIKE '%' || i_param || '%' OR
+                email ILIKE '%' || i_param || '%' OR
+                gender ILIKE '%' || i_param || '%' OR
+                telphone ILIKE '%' || i_param || '%'
+        ORDER BY id ASC;
+END;
+$procedure$
+;
+
+
+CREATE OR REPLACE PROCEDURE "esbedu"."sp_add_user"(
+     IN i_username varchar,
+     IN i_password varchar,
+     IN i_name varchar,
+     IN i_email varchar,
+     IN i_gender varchar,
+     IN i_telphone varchar
+)
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+AS $procedure$
+BEGIN
+    INSERT INTO esbedu.bk_user (username, password, name, email, gender, telphone)
+    VALUES (i_username, i_password, i_name, i_email, i_gender, i_telphone);
+END;
+$procedure$
+;
+
+
+CALL esbedu.sp_add_user('testUser2', 'testPassword', 'Test User',
+    'test@example.com', '男', '1234567890');
+INSERT INTO esbedu.bk_user (username, password, name, email, gender, telphone)
+VALUES ('123', '123', '123', '123', '123', '123');
+
+
+
+CREATE OR REPLACE PROCEDURE "esbedu"."sp_update_user"(
+    IN i_id int,
+    IN i_username varchar,
+    IN i_password varchar,
+    IN i_name varchar,
+    IN i_email varchar,
+    IN i_gender varchar,
+    IN i_telphone varchar
+)
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+AS $procedure$
+BEGIN
+    UPDATE esbedu.bk_user
+    SET
+        username = i_username,
+        password = i_password,
+        name = i_name,
+        email = i_email,
+        gender = i_gender,
+        telphone = i_telphone
+    WHERE id = i_id;
+END;
+$procedure$
+;
+
+
+
+
+CREATE OR REPLACE PROCEDURE "esbedu"."sp_delete_user"(
+    IN i_id INT
+)
+    LANGUAGE plpgsql
+    SECURITY DEFINER
+AS $procedure$
+BEGIN
+    DELETE FROM esbedu.bk_user WHERE id = i_id;
+END;
+$procedure$;
+
+
+CREATE OR REPLACE procedure esbedu.sp_find_by_username(IN i_username varchar ,OUT o_cur refcursor)
+    language plpgsql
+    security definer
+as $procedure$
+BEGIN
+    OPEN o_cur FOR
+        SELECT id, username, password , name,email,gender,telphone FROM esbedu.bk_user
+        WHERE username = i_username
+        ORDER BY id ASC;
+END;
+$procedure$;
+
+
+CREATE OR REPLACE procedure esbedu.sp_find_by_username_and_password(IN i_username varchar ,IN i_password varchar,OUT o_cur refcursor)
+    language plpgsql
+    security definer
+as $procedure$
+BEGIN
+    OPEN o_cur FOR
+        SELECT id, username, password , name,email,gender,telphone FROM esbedu.bk_user
+        WHERE username = i_username and password = i_password
+        ORDER BY id ASC;
+END;
+$procedure$;
